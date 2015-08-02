@@ -1,0 +1,312 @@
+package com.manish;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+
+
+/**
+ * Servlet implementation class ControllerServlet
+ */
+public class ControllerServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+    /**
+     * Default constructor. 
+     */
+    public ControllerServlet() {
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+		System.out.println("inside do get method");
+		process(request,response);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+       process(request,response);
+	}
+
+	@SuppressWarnings("unused")
+	protected void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+	{
+		String result="";
+		String uri=request.getRequestURI();
+		RequestDispatcher rd=null;
+		System.out.println("inside process");
+		if(uri.contains("/openRegisterView.do"))
+		{
+			System.out.println("inside open register");
+		 rd=request.getRequestDispatcher("Register.jsp");
+		    rd.forward(request, response);
+		}
+		if(uri.contains("/Register.do"))
+		{
+			System.out.println("inside register ");
+			RegBean rb=(RegBean)request.getAttribute("reg");
+			 result=rb.validate();
+			 String result1=Model.register(rb);
+			Connection con=null;
+			if(result==Constants.SUCCESS)
+			{
+				//i/p validation 
+				
+				/*if(result1.equals(Constants.SUCCESS))
+				{*/
+			       rd=request.getRequestDispatcher("Success.jsp");
+			     
+			          rd.forward(request,response);
+				}
+				else
+				{
+					rd=request.getRequestDispatcher("Register.jsp");
+					 request.setAttribute("message", result);
+				     
+			          rd.forward(request,response);
+					
+				}
+			   
+				   
+			 }
+			
+		
+		 if(uri.contains("/openLoginView.do"))
+		 {
+			 rd=request.getRequestDispatcher("Login.jsp");
+			 rd.forward(request, response);
+		 }
+		   
+		if(uri.contains("/Login.do"))
+		{
+			//first get bean from session scope
+			//invoke model`s authenticate and pass as param
+			//accept String as return value
+			//if success, forward to Menu.jsp
+			//if failure, forward back to Login.jsp
+			
+			LoginBean lb = (LoginBean) request.getAttribute("re");
+			String msg = Model.authenticate(lb);
+			if(msg.equals(Constants.SUCCESS))
+			{
+				HttpSession session = request.getSession(true);
+				session.setAttribute("user", lb);
+				
+				rd = request.getRequestDispatcher("Menu.jsp");
+				
+			    rd.forward(request, response);
+			}
+			else
+			{
+				request.setAttribute("message", msg);
+				rd = request.getRequestDispatcher("Login.jsp");
+				rd.forward(request, response);
+				
+			}
+		}//if end
+		if(uri.contains("/openAddContactView.do"))
+		{
+			rd=request.getRequestDispatcher("AddContact.jsp");
+			rd.forward(request, response);
+		}
+		
+		 if(uri.contains("/AddContact.do"))
+		 {
+			 System.out.println("inside addcontact ");
+				ContactBean cb=(ContactBean)request.getAttribute("con");
+				 String result1=cb.validate();
+				 String result2=Model.addContact(cb);
+				if(result1==Constants.SUCCESS)
+				{
+					//i/p validation
+					
+				//	if(result2.equals(Constants.SUCCESS))
+					//{
+				       rd=request.getRequestDispatcher("Success.jsp");
+				     
+				          rd.forward(request,response);
+					
+					   
+				 }
+				else
+				{
+					rd=request.getRequestDispatcher("AddContact.jsp");
+					 request.setAttribute("message", result1);
+				     
+			          rd.forward(request,response);
+					
+					
+				}
+			 
+			 
+				
+			 
+		 }//if end
+		 
+		 if(uri.contains("/openeditContactView.do"))
+		 {
+			 rd=request.getRequestDispatcher("EditContact.jsp");
+			 
+		     rd.forward(request,response);
+			
+			 
+		 }
+		 if(uri.contains("/Edit.do"))
+		 {
+			 EditContactBean ecb=(EditContactBean)request.getAttribute("edit");
+			 String msg=Model.edit(ecb);
+			 if(msg.equals(Constants.SUCCESS))
+			 {
+				 rd=request.getRequestDispatcher("Success.jsp");
+				 rd.forward(request, response);
+			 }
+			 else
+			 {
+				 rd=request.getRequestDispatcher("EditContact.jsp");
+				  request.setAttribute("message", msg);
+				 rd.forward(request, response);
+				 
+			 }
+			 
+			 
+			 
+		 }
+		 
+		 if(uri.contains("/openListContactView.do"))
+		 {
+			 System.out.println("inside listcontactView.do ");
+			 rd=request.getRequestDispatcher("List.jsp");
+			   rd.forward(request, response);
+		 }
+		 if(uri.contains("/List.do"))
+		 {
+			 System.out.println("inside list.do");
+			 System.out.println("uri="+uri);
+			 
+			  OptionBean ob=(OptionBean)request.getAttribute("opt");
+				  if(ob.getName()!=null)
+				  {
+				  System.out.println("inside list by name");
+				  List<RegBean> l1=Model.listbyName();
+				  rd=request.getRequestDispatcher("ListName.jsp");
+				    request.setAttribute("bean", l1);
+				    rd.forward(request,response);
+				  }
+				  if(ob.getEmail()!=null)
+				  {
+					  System.out.println("inside list by email");
+					  List<RegBean> l1=Model.listbyEmail();
+					  rd=request.getRequestDispatcher("ListEmail.jsp");
+					    request.setAttribute("bean", l1);
+					    rd.forward(request,response);
+					  
+				  }
+			  
+		 }
+		 if(uri.contains("/openSearchContactView.do"))
+		 {
+			 rd=request.getRequestDispatcher("Search.jsp");
+			 rd.forward(request, response);
+			
+			 
+		 }
+		 if(uri.contains("/Search.do"))
+		 {
+			 System.out.println("inside /Search.do");
+			 SearchBean sb=(SearchBean)request.getAttribute("sb");
+			 if(sb.getName()!=null)
+			 {
+			   ContactBean cb=Model.searchByName(sb);
+			   request.setAttribute("cb", cb);
+			   rd=request.getRequestDispatcher("SearchName.jsp");
+			   rd.forward(request, response);
+			 }
+			 if(sb.getEmail()!=null)
+			 {
+				 ContactBean cb1=Model.searchByEmail(sb);
+				   
+				   rd=request.getRequestDispatcher("SearchEmail.jsp");
+				   request.setAttribute("cb", cb1);
+				   
+				   rd.forward(request, response);
+				 
+			 }
+			 
+		 }
+		 if(uri.contains("/opendeleteContactView.do"))
+		 {
+			 System.out.println("inside Delete contact ");
+		rd=request.getRequestDispatcher("DeleteContact.jsp");
+			 
+		     rd.forward(request,response);
+			
+			 
+		 }
+		 if(uri.contains("/Delete.do"))
+		 {
+			 System.out.println("inside Delete.do  ");
+			 
+			 
+		     DeleteContactBean dcb=(DeleteContactBean)request.getAttribute("Delete");
+		 //  String rs= dcb.validta();
+		 //      System.out.println(rs);
+		     if(dcb.getEmail()!=null)
+		     {
+		    	 String msg=Model.deleteContact(dcb);
+		    	  if(msg.equals(Constants.SUCCESS))
+				 {
+					 rd=request.getRequestDispatcher("Success.jsp");
+					 rd.forward(request, response);
+				 }
+				 else
+				 {
+					  rd=request.getRequestDispatcher("DeleteContact.jsp");
+					  request.setAttribute("message", msg);
+					 rd.forward(request, response);
+					 
+				 }
+		    	  
+					
+		     }else
+		     {
+		    	 
+		    	 
+		     }
+			
+			
+			 
+			 
+		 }
+		  if(uri.contains("/LogOut.do"))
+		  {
+			  HttpSession session=request.getSession(false);
+			   session.removeAttribute("user");
+			   session.invalidate();
+			   response.sendRedirect("HomePage.html");
+			   
+			    
+		  }
+		  
+		   
+			
+		}
+	
+	}
+
+
+
